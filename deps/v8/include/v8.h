@@ -1762,6 +1762,8 @@ class V8_EXPORT ValueSerializer {
     virtual void FreeBufferMemory(void* buffer);
   };
 
+  static uint32_t GetCurrentDataFormatVersion();
+
   explicit ValueSerializer(Isolate* isolate);
   ValueSerializer(Isolate* isolate, Delegate* delegate);
   ~ValueSerializer();
@@ -1942,7 +1944,7 @@ class V8_EXPORT NativeWeakMap : public Data {
  public:
   static Local<NativeWeakMap> New(Isolate* isolate);
   void Set(Local<Value> key, Local<Value> value);
-  Local<Value> Get(Local<Value> key);
+  Local<Value> Get(Local<Value> key) const;
   bool Has(Local<Value> key);
   bool Delete(Local<Value> key);
 };
@@ -4053,7 +4055,8 @@ class V8_EXPORT WasmCompiledModule : public Object {
 class V8_EXPORT WasmModuleObjectBuilder final {
  public:
   WasmModuleObjectBuilder(Isolate* isolate) : isolate_(isolate) {}
-  void OnBytesReceived(std::unique_ptr<const uint8_t[]>&& bytes, size_t size);
+  // The buffer passed into OnBytesReceived is owned by the caller.
+  void OnBytesReceived(const uint8_t*, size_t size);
   MaybeLocal<WasmCompiledModule> Finish();
 
  private:

@@ -2963,8 +2963,7 @@ void NativeWeakMap::Set(Local<Value> v8_key, Local<Value> v8_value) {
   i::JSWeakCollection::Set(weak_collection, key, value, hash);
 }
 
-
-Local<Value> NativeWeakMap::Get(Local<Value> v8_key) {
+Local<Value> NativeWeakMap::Get(Local<Value> v8_key) const {
   i::Handle<i::JSWeakMap> weak_collection = Utils::OpenHandle(this);
   i::Isolate* isolate = weak_collection->GetIsolate();
   ENTER_V8(isolate);
@@ -3127,6 +3126,11 @@ struct ValueSerializer::PrivateData {
   i::Isolate* isolate;
   i::ValueSerializer serializer;
 };
+
+// static
+uint32_t ValueSerializer::GetCurrentDataFormatVersion() {
+  return i::ValueSerializer::GetCurrentDataFormatVersion();
+}
 
 ValueSerializer::ValueSerializer(Isolate* isolate)
     : ValueSerializer(isolate, nullptr) {}
@@ -7590,9 +7594,14 @@ MaybeLocal<WasmCompiledModule> WasmCompiledModule::Compile(Isolate* isolate,
       Utils::ToLocal(maybe_compiled.ToHandleChecked()));
 }
 
-void WasmModuleObjectBuilder::OnBytesReceived(
-    std::unique_ptr<const uint8_t[]>&& bytes, size_t size) {
-  received_buffers_.push_back(Buffer(std::move(bytes), size));
+void WasmModuleObjectBuilder::OnBytesReceived(const uint8_t* bytes,
+                                              size_t size) {
+  std::unique_ptr<uint8_t[]> cloned_bytes(new uint8_t[size]);
+  memcpy(cloned_bytes.get(), bytes, size);
+  received_buffers_.push_back(
+      Buffer(std::unique_ptr<const uint8_t[]>(
+                 const_cast<const uint8_t*>(cloned_bytes.release())),
+             size));
   total_size_ += size;
 }
 
