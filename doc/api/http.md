@@ -698,7 +698,7 @@ request.setHeader('Content-Type', 'application/json');
 or
 
 ```js
-request.setHeader('Cookie', ['type=ninja', 'language=javascript']);
+request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
 ```
 
 ### request.setNoDelay([noDelay])
